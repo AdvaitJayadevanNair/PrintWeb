@@ -4,16 +4,16 @@ import { collection, addDoc } from "firebase/firestore";
 import { uploadBytes, ref } from "firebase/storage"
 
 export default function Print({ user, db, storage }) {
+    const [file, setFile] = useState(false);
     const [disabled, setDisabled] = useState(false);
     const [notification, setNotification] = useState(null);
     const input = useRef(null);
 
 
     function submit() {
-        if (!input.files || input.files.length == 0 || !user) return;
+        if (!file || !user) return;
         setDisabled(true);
         setNotification({ text: "Processing...", err: false });
-        const file = input.files[0];
         if (file.size > 20 * 1024 * 1024) { //20*1024*1024 = 20mb
             setDisabled(false);
             setNotification({ text: "Max file size is 20mb! Current file size is " + file.size, err: true });
@@ -25,7 +25,6 @@ export default function Print({ user, db, storage }) {
             return;
         }
         //add check for page count        
-
 
         console.log(file, user);
         const uid = uuidv4();
@@ -45,6 +44,10 @@ export default function Print({ user, db, storage }) {
         });
     }
 
+    function onFileChange(e){
+        setFile(e.target.files[0]);
+    }    
+
     return (
         <>
             <section className="section">
@@ -63,14 +66,14 @@ export default function Print({ user, db, storage }) {
                         <label className="label">PDF Upload</label>
                         <div className="file has-name">
                             <label className="file-label">
-                                <input ref={input} className="file-input" type="file" accept="application/pdf" />
+                                <input className="file-input" type="file" accept="application/pdf" onChange={onFileChange} />
                                 <span className="file-cta">
                                     <span className="file-icon">
                                         <i className="fas fa-upload"></i>
                                     </span>
                                     <span className="file-label">Choose a file…</span>
                                 </span>
-                                <span className="file-name">{input.files ? input.files[0].name : "Upload a file"}</span>
+                                <span className="file-name">{file ? file.name : "Upload a file"}</span>
                             </label>
                         </div>
                     </div>
