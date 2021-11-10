@@ -1,108 +1,167 @@
+import { useState, useEffect } from 'react';
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 
+function humanFileSize(bytes, si = false, dp = 1) {
+    const thresh = si ? 1000 : 1024;
 
-export default function Admin({ files }) {
-    const [notification, setNotification] = useState(null);
-    const [disabled, setDisabled] = useState(false);
-
-    function clearLog(){
-        setDisabled(true);
-        setNotification({text: "Processing...", err: false});
-        axios.post("api/clearLog")
-            .then(function(response) {
-                setDisabled(false);
-                setNotification(response.data)
-            })
-            .catch(function(error) {
-                setDisabled(false);
-                console.error(error);
-                setNotification({text: "Error!", err: true});
-            });
+    if (Math.abs(bytes) < thresh) {
+        return bytes + ' B';
     }
 
-    function reloadPrinters(){
+    const units = si
+        ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+        : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+    let u = -1;
+    const r = 10 ** dp;
+
+    do {
+        bytes /= thresh;
+        ++u;
+    } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
+
+
+    return bytes.toFixed(dp) + ' ' + units[u];
+}
+
+export default function Admin({ db, storage }) {
+    const [docs, setDocs] = useState(null);
+    const [printers, setPrinters] = useState(null);
+    const [options, setOptions] = useState(null);
+    const [notification, setNotification] = useState(null);
+    const [disabled, setDisabled] = useState(false);
+    const [printer, setPrinter] = useState(null);
+
+    useEffect(() => {
+        const q1 = query(collection(db, "print"));
+        const q2 = query(collection(db, "printers"));
+        const q3 = query(doc(db, "options", "options"));
+        const unsubscribe1 = onSnapshot(q1, (querySnapshot) => {
+            const docs = [];
+            querySnapshot.forEach((doc) => {
+                docs.push(doc.data());
+            });
+            setDocs(docs);
+        });
+        const unsubscribe2 = onSnapshot(q2, (querySnapshot) => {
+            const printers = [];
+            querySnapshot.forEach((doc) => {
+                printers.push(doc.data());
+            });
+            setPrinters(printers);
+        });
+        const unsubscribe3 = onSnapshot(q3, (doc) => {
+            setOptions(doc.data());
+        });
+        return () => {
+            unsubscribe1();
+            unsubscribe2();
+            unsubscribe3();
+        };
+    }, [])
+
+    function clearLog(){
+        // setDisabled(true);
+        setNotification({text: "This does not currently work!", err: true});
+        //ToDo
+    }
+
+    async function reloadPrinters(){
         setDisabled(true);
         setNotification({text: "Processing...", err: false});
-        axios.post("api/reloadPrinters")
-            .then(function(response) {
-                setDisabled(false);
-                setNotification(response.data)
-            })
-            .catch(function(error) {
-                setDisabled(false);
-                console.error(error);
-                setNotification({text: "Error!", err: true});
-            });
+        
+        await updateDoc(doc(db, "options", "options"), {
+            getPrinters: true,
+        });
+
+        setDisabled(false);
+        setNotification({text: "Successful! This will take a few mins to show up!", err: false});
+    }
+
+    function printerChange(e){
+        setPrinter(e.target.value);
+    }
+
+    async function changePrinter(){
+        if(!printer) return;
+        setDisabled(true);
+        setNotification({text: "Processing...", err: false});
+
+        await updateDoc(doc(db, "options", "options"), {
+            name: printers[printer].name,
+            deviceId: printers[printer].deviceId
+        });
+
+        setDisabled(false);
+        setNotification({text: "Printer changed!", err: false});
+    }
+
+    if (!docs || !printers || !options) {
+        return <div>fancy loading screen...🙂</div>
     }
 
     return (
         <>
-            <Head>
-                <title>Synlab Printer Online Portal - Admin</title>
-                <meta name="description" content="Synlab Printer Online Portal" />
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
-
-            <section class="section">
+            <section className="section">
                 {notification ?
-                    <div class={notification.err ? "notification is-danger" : "notification is-primary"}>
-                        <button class="delete" onClick={() => setNotification(null)}></button>
+                    <div className={notification.err ? "notification is-danger" : "notification is-primary"}>
+                        <button className="delete" onClick={() => setNotification(null)}></button>
                         {notification.text}
                     </div>
                     :
                     ""
                 }
-                <h1 class="title">Admin</h1>
-                <h2 class="subtitle">Current printer: <strong>Pritsas</strong></h2>
+                <h1 className="title">Admin</h1>
+                <h2 className="subtitle">Current printer: <strong className={options.deviceId ? "" : "has-text-danger"}>{options.deviceId ? options.deviceId : "Not Set"}</strong></h2>
 
-                <div class="columns">
-                    <div class="column">
-                        <table class="table">
+                <div className="columns">
+                    <div className="column">
+                        <table className="table">
                             <thead>
                                 <tr>
-                                    <th>Student Id</th>
+                                    <th>Student</th>
                                     <th>File</th>
-                                    <th>Time</th>
+                                    <th>Upload Time</th>
                                     <th>Print Status</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {files.map((file) => {
+                                {docs.map((doc) => {
                                     return <tr>
-                                        <th>{file.studetId}</th>
-                                        <td><a href={file.path} title={file.name}>{file.name}({file.fileSize})</a></td>
-                                        <td>{file.time}</td>
-                                        <td>{file.printStatus}</td>
+                                        <th>{doc.name}({doc.id})</th>
+                                        <td><a title={doc.fileName}>{doc.fileName}({humanFileSize(doc.fileSize)})</a></td>
+                                        <td>{doc.time}</td>
+                                        <td>{doc.printStatus ? "Printed" : "In queue"}</td>
                                     </tr>;
                                 })}
-                                
+
                             </tbody>
                         </table>
                     </div>
-                    <div class="column">
-                        <div class="box">
-                            <div class="field">
-                                <label class="label">Printer</label>
-                                <div class="select">
-                                    <select>
-                                        <option>Select dropdown</option>
-                                        <option>With options</option>
+                    <div className="column">
+                        <div className="box">
+                            <div className="field">
+                                <label className="label">Printer</label>
+                                <div className="select">
+                                    <select defaultValue="" onChange={printerChange}>
+                                        <option value="" disabled>Select Printer</option>
+                                        {printers.map((printer, index) => {
+                                            return <option value={index}>{printer.name}</option>;
+                                        })}
                                     </select>
                                 </div>
-                                <button class="button" disabled={disabled} onClick={reloadPrinters}>
+                                <button className="button" disabled={disabled} onClick={reloadPrinters}>
                                     <span className="icon is-medium">
-                                        <span class="material-icons-outlined">refresh</span>
+                                        <span className="material-icons-outlined">refresh</span>
                                     </span>
-                                </button>
-                                
-                                                                
+                                </button>                      
                             </div>
-                            <button class="button is-primary" disabled={disabled}>Change</button>
+                            <button className="button is-primary" disabled={disabled} onClick={changePrinter}>Change</button>
                         </div>
-                        <div class="box">
-                            <div class="field">
-                                <label class="label">Log</label>
+                        <div className="box">
+                            <div className="field">
+                                <label className="label">Log</label>
                                 <p className="is-size-4 has-text-danger">This is irrecoverable!</p>
-                                <button class="button is-danger" disabled={disabled} onClick={clearLog}>Clear Log</button>
+                                <button className="button is-danger" disabled={disabled} onClick={clearLog}>Clear Log</button>
                             </div>
                             
                         </div>

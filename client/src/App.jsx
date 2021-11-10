@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -27,12 +27,23 @@ export default function App() {
 
     useEffect(() => {
         onAuthStateChanged(auth, (user) => {
-            setUser(user);
+            if(user && user.email.split("@")[1] === "sycamoreschools.org"){
+                setUser(user);
+            }
+            setUser(null);
         });
     }, []);
 
     if (!user) {
         return <Login auth={auth} />;
+    }
+
+    if(isNaN(user.email.split("@")[0])){
+        const Admin = React.lazy(() => import('./Admin.jsx'));
+
+        return <Suspense fallback={<div>fancy loading screen...🙂</div>}>
+            <Admin {...{ db, storage }}/>
+        </Suspense>;
     }
 
     return (
