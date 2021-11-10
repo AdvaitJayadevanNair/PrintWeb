@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { signOut } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
 import { uploadBytes, ref } from "firebase/storage"
 
-export default function Print({ user, db, storage }) {
+export default function Print({ user, db, storage, auth }) {
     const [file, setFile] = useState(false);
     const [disabled, setDisabled] = useState(false);
     const [notification, setNotification] = useState(null);
@@ -83,7 +84,7 @@ export default function Print({ user, db, storage }) {
                         <button className="button is-primary" disabled={disabled} onClick={submit}>Print</button>
                     </div>
                 </div>
-                <button class="button is-danger is-outlined">
+                <button class="button is-danger is-outlined" onClick={() => signOut(auth)}>
                     Sign out
                 </button>
             </section>

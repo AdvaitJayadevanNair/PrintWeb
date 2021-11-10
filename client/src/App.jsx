@@ -43,12 +43,12 @@ export default function App() {
         const Admin = lazy(() => import('./Admin.jsx'));
 
         return <Suspense fallback={<div>fancy loading screen...🙂</div>}>
-            <Admin {...{ db, storage }} />
+            <Admin {...{ db, storage, auth }} />
         </Suspense>;
     }
 
     return (
-        <Print {...{ user, db, storage }} />
+        <Print {...{ user, db, storage, auth }} />
     )
 
     

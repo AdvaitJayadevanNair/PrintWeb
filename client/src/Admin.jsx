@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { signOut } from "firebase/auth";
 import { doc, collection, query, onSnapshot, updateDoc } from "firebase/firestore";
 
 function humanFileSize(bytes, si = false, dp = 1) {
@@ -23,7 +24,7 @@ function humanFileSize(bytes, si = false, dp = 1) {
     return bytes.toFixed(dp) + ' ' + units[u];
 }
 
-export default function Admin({ db, storage }) {
+export default function Admin({ db, storage, auth }) {
     const [docs, setDocs] = useState(null);
     const [printers, setPrinters] = useState(null);
     const [options, setOptions] = useState(null);
@@ -163,10 +164,12 @@ export default function Admin({ db, storage }) {
                                 <p className="is-size-4 has-text-danger">This is irrecoverable!</p>
                                 <button className="button is-danger" disabled={disabled} onClick={clearLog}>Clear Log</button>
                             </div>
-                            
                         </div>
                     </div>
                 </div>
+                <button class="button is-danger is-outlined" onClick={() => signOut(auth)}>
+                    Sign out
+                </button>
             </section>
 
             <footer className="footer">
