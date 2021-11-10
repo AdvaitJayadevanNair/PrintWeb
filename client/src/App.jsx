@@ -29,7 +29,7 @@ export default function App() {
         onAuthStateChanged(auth, (user) => {
             if (user && user.email.split("@")[1] === "sycamoreschools.org") {
                 setUser(user);
-                alert("Yes");
+                return;
             }
             setUser(null);
         });

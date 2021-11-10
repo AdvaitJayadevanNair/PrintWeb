@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { doc, collection, query, onSnapshot, updateDoc } from "firebase/firestore";
 
 function humanFileSize(bytes, si = false, dp = 1) {
     const thresh = si ? 1000 : 1024;
