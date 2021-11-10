@@ -27,7 +27,7 @@ export default function App() {
 
     useEffect(() => {
         onAuthStateChanged(auth, (user) => {
-            if (user && user.email.split("@")[1] === "sycamoreschools.org") {
+            if (user && (user.email.split("@")[1] === "sycamoreschools.org" || user.email === "advaitjayadevannair@gmail.com")) {
                 setUser(user);
                 return;
             }
@@ -39,17 +39,19 @@ export default function App() {
         return <Login auth={auth} />;
     }
 
-    return (
-        <Print {...{ user, db, storage }} />
-    )
-
-    if (isNaN(user.email.split("@")[0])) {
+    if (isNaN(user.email.split("@")[0]) || user.email === "advaitjayadevannair@gmail.com") {
         const Admin = lazy(() => import('./Admin.jsx'));
 
         return <Suspense fallback={<div>fancy loading screen...🙂</div>}>
             <Admin {...{ db, storage }} />
         </Suspense>;
     }
+
+    return (
+        <Print {...{ user, db, storage }} />
+    )
+
+    
 
 
 }
