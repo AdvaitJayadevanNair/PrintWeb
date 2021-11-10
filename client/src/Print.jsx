@@ -38,7 +38,9 @@ export default function Print({ user, db, storage }) {
                 fileSize: file.size,
                 filePath: uid,
                 printStatus: false,
+                time: new Date()
             });
+            console.log('Print added to queue!');
             setDisabled(false);
             setNotification({ text: "Successful! Print added to queue!", err: false });
         });
