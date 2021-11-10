@@ -1,0 +1,20 @@
+{
+  "name": "printweb",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "firebase": "^9.4.0",
+    "pdfjs-dist": "^2.10.377",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^1.0.0",
+    "vite": "^2.6.4"
+  }
+}
