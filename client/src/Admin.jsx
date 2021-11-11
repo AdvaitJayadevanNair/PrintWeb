@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { signOut } from "firebase/auth";
 import { doc, collection, query, onSnapshot, updateDoc } from "firebase/firestore";
+import { ref, getDownloadURL } from "firebase/storage";
 
 function humanFileSize(bytes, si = false, dp = 1) {
     const thresh = si ? 1000 : 1024;
@@ -60,32 +61,32 @@ export default function Admin({ db, storage, auth }) {
         };
     }, [])
 
-    function clearLog(){
+    function clearLog() {
         // setDisabled(true);
-        setNotification({text: "This does not currently work!", err: true});
+        setNotification({ text: "This does not currently work!", err: true });
         //ToDo
     }
 
-    async function reloadPrinters(){
+    async function reloadPrinters() {
         setDisabled(true);
-        setNotification({text: "Processing...", err: false});
-        
+        setNotification({ text: "Processing...", err: false });
+
         await updateDoc(doc(db, "options", "options"), {
             getPrinters: true,
         });
 
         setDisabled(false);
-        setNotification({text: "Successful! This will take a few mins to show up!", err: false});
+        setNotification({ text: "Successful! This will take a few mins to show up!", err: false });
     }
 
-    function printerChange(e){
+    function printerChange(e) {
         setPrinter(e.target.value);
     }
 
-    async function changePrinter(){
-        if(!printer) return;
+    async function changePrinter() {
+        if (!printer) return;
         setDisabled(true);
-        setNotification({text: "Processing...", err: false});
+        setNotification({ text: "Processing...", err: false });
 
         await updateDoc(doc(db, "options", "options"), {
             name: printers[printer].name,
@@ -93,12 +94,12 @@ export default function Admin({ db, storage, auth }) {
         });
 
         setDisabled(false);
-        setNotification({text: "Printer changed!", err: false});
+        setNotification({ text: "Printer changed!", err: false });
     }
 
-    function dateToTimestamp(date){
+    function dateToTimestamp(date) {
         console.log(date);
-        let month = date.getMonth()+1;
+        let month = date.getMonth() + 1;
         let day = date.getDate();
         let year = date.getFullYear();
         let hours = date.getHours();
@@ -108,6 +109,12 @@ export default function Admin({ db, storage, auth }) {
         hours = hours ? hours : 12;
         minutes = minutes < 10 ? '0' + minutes : minutes;
         return `${month}/${day}/${year} ${hours}:${minutes}${ampm}`;
+    }
+
+    function redirectToFile(path) {
+        let file = ref(storage, )
+        let url = await getDownloadURL(file);
+        window.open(url, '_blank').focus();
     }
 
     if (!docs || !printers || !options) {
@@ -143,7 +150,7 @@ export default function Admin({ db, storage, auth }) {
                                 {docs.map((doc, index) => {
                                     return <tr key={index}>
                                         <th>{doc.name}({doc.id})</th>
-                                        <td><a title={doc.fileName}>{doc.fileName}({humanFileSize(doc.fileSize)})</a></td>
+                                        <td><a href="#" title={doc.fileName} onClick={() => redirectToFile(doc.filePath)}>{doc.fileName}({humanFileSize(doc.fileSize)})</a></td>
                                         <td>{dateToTimestamp(doc.time.toDate())}</td>
                                         <td>{doc.printStatus ? "Printed" : "In queue"}</td>
                                     </tr>;
@@ -168,7 +175,7 @@ export default function Admin({ db, storage, auth }) {
                                     <span className="icon is-medium">
                                         <span className="material-icons-outlined">refresh</span>
                                     </span>
-                                </button>                      
+                                </button>
                             </div>
                             <button className="button is-primary" disabled={disabled} onClick={changePrinter}>Change</button>
                         </div>
@@ -179,11 +186,13 @@ export default function Admin({ db, storage, auth }) {
                                 <button className="button is-danger" disabled={disabled} onClick={clearLog}>Clear Log</button>
                             </div>
                         </div>
+                        <div className="box">
+                            <div className="field">
+                                <button className="button is-danger is-outlined" onClick={() => signOut(auth)}>Sign out</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <button className="button is-danger is-outlined" onClick={() => signOut(auth)}>
-                    Sign out
-                </button>
             </section>
 
             <footer className="footer">
