@@ -111,7 +111,7 @@ export default function Admin({ db, storage, auth }) {
         return `${month}/${day}/${year} ${hours}:${minutes}${ampm}`;
     }
 
-    function redirectToFile(path) {
+    async function redirectToFile(path) {
         let file = ref(storage, )
         let url = await getDownloadURL(file);
         window.open(url, '_blank').focus();
