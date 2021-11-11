@@ -97,6 +97,7 @@ export default function Admin({ db, storage, auth }) {
     }
 
     function dateToTimestamp(date){
+        console.log(date);
         let month = date.getMonth()+1;
         let day = date.getDate();
         let year = date.getFullYear();
