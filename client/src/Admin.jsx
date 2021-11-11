@@ -96,6 +96,19 @@ export default function Admin({ db, storage, auth }) {
         setNotification({text: "Printer changed!", err: false});
     }
 
+    function dateToTimestamp(date){
+        let month = date.getMonth()+1;
+        let day = date.getDate();
+        let year = date.getFullYear();
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        let ampm = hours >= 12 ? 'pm' : 'am';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        return `${month}/${day}/${year} ${hours}:${minutes}${ampm}`;
+    }
+
     if (!docs || !printers || !options) {
         return <div>fancy loading screen...🙂</div>
     }
@@ -126,11 +139,11 @@ export default function Admin({ db, storage, auth }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {docs.map((doc) => {
-                                    return <tr>
+                                {docs.map((doc, index) => {
+                                    return <tr key={index}>
                                         <th>{doc.name}({doc.id})</th>
                                         <td><a title={doc.fileName}>{doc.fileName}({humanFileSize(doc.fileSize)})</a></td>
-                                        <td>{doc.time}</td>
+                                        <td>{dateToTimestamp(doc.time)}</td>
                                         <td>{doc.printStatus ? "Printed" : "In queue"}</td>
                                     </tr>;
                                 })}
@@ -146,7 +159,7 @@ export default function Admin({ db, storage, auth }) {
                                     <select defaultValue="" onChange={printerChange}>
                                         <option value="" disabled>Select Printer</option>
                                         {printers.map((printer, index) => {
-                                            return <option value={index}>{printer.name}</option>;
+                                            return <option key={index} value={index}>{printer.name}</option>;
                                         })}
                                     </select>
                                 </div>
@@ -167,7 +180,7 @@ export default function Admin({ db, storage, auth }) {
                         </div>
                     </div>
                 </div>
-                <button class="button is-danger is-outlined" onClick={() => signOut(auth)}>
+                <button className="button is-danger is-outlined" onClick={() => signOut(auth)}>
                     Sign out
                 </button>
             </section>

@@ -84,7 +84,7 @@ export default function Print({ user, db, storage, auth }) {
                         <button className="button is-primary" disabled={disabled} onClick={submit}>Print</button>
                     </div>
                 </div>
-                <button class="button is-danger is-outlined" onClick={() => signOut(auth)}>
+                <button className="button is-danger is-outlined" onClick={() => signOut(auth)}>
                     Sign out
                 </button>
             </section>
