@@ -144,7 +144,7 @@ export default function Admin({ db, storage, auth }) {
                                     return <tr key={index}>
                                         <th>{doc.name}({doc.id})</th>
                                         <td><a title={doc.fileName}>{doc.fileName}({humanFileSize(doc.fileSize)})</a></td>
-                                        <td>{dateToTimestamp(doc.time)}</td>
+                                        <td>{dateToTimestamp(doc.time.toDate())}</td>
                                         <td>{doc.printStatus ? "Printed" : "In queue"}</td>
                                     </tr>;
                                 })}
