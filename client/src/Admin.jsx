@@ -27,7 +27,6 @@ function humanFileSize(bytes, si = false, dp = 1) {
 
 export default function Admin({ db, storage, auth }) {
     const [docs, setDocs] = useState(null);
-    const [printers, setPrinters] = useState(null);
     const [options, setOptions] = useState(null);
     const [notification, setNotification] = useState(null);
     const [disabled, setDisabled] = useState(false);
@@ -35,7 +34,6 @@ export default function Admin({ db, storage, auth }) {
 
     useEffect(() => {
         const q1 = query(collection(db, "print"));
-        const q2 = query(collection(db, "printers"));
         const q3 = query(doc(db, "options", "options"));
         const unsubscribe1 = onSnapshot(q1, (querySnapshot) => {
             const docs = [];
@@ -44,19 +42,11 @@ export default function Admin({ db, storage, auth }) {
             });
             setDocs(docs);
         });
-        const unsubscribe2 = onSnapshot(q2, (querySnapshot) => {
-            const printers = [];
-            querySnapshot.forEach((doc) => {
-                printers.push(doc.data());
-            });
-            setPrinters(printers);
-        });
         const unsubscribe3 = onSnapshot(q3, (doc) => {
             setOptions(doc.data());
         });
         return () => {
             unsubscribe1();
-            unsubscribe2();
             unsubscribe3();
         };
     }, [])
@@ -89,8 +79,8 @@ export default function Admin({ db, storage, auth }) {
         setNotification({ text: "Processing...", err: false });
 
         await updateDoc(doc(db, "options", "options"), {
-            name: printers[printer].name,
-            deviceId: printers[printer].deviceId
+            name: options.printers[printer].name,
+            deviceId: options.printers[printer].deviceId
         });
 
         setDisabled(false);
@@ -117,7 +107,7 @@ export default function Admin({ db, storage, auth }) {
         window.open(url, '_blank').focus();
     }
 
-    if (!docs || !printers || !options) {
+    if (!docs || !options) {
         return <div>fancy loading screen...🙂</div>
     }
 
@@ -166,7 +156,7 @@ export default function Admin({ db, storage, auth }) {
                                 <div className="select">
                                     <select defaultValue="" onChange={printerChange}>
                                         <option value="" disabled>Select Printer</option>
-                                        {printers.map((printer, index) => {
+                                        {options.printers.map((printer, index) => {
                                             return <option key={index} value={index}>{printer.name}</option>;
                                         })}
                                     </select>
