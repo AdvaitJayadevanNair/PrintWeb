@@ -4,6 +4,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
+    "site": "synlabprint",
     "public": "client/dist",
     "ignore": [
       "firebase.json",
