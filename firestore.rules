@@ -4,9 +4,16 @@ service cloud.firestore {
     function isAuth() {
       return request.auth.token.email.split("@")[1] == "sycamoreschools.org";
     }
-    match /{document=**} {
-      allow write: if isAuth();
+    function isAdmin() {
+      let email = request.auth.token.email.split("@");
+      return (email[1] == "sycamoreschools.org" && math.isNaN(email[0])) || request.auth.token.email == "advaitjayadevannair@gmail.com";
+    }
+    match /print/{doc} {
+      allow read: if isAdmin();
+      allow write: if isAuth() || isAdmin();
+    }
+    match /options/{option} {
+      allow read, write: if isAdmin();
     }
   }
 }
-
